@@ -39,9 +39,6 @@ class Target {
     virtual void emitCodeSection(Util::SourceCodeBuilder* builder, cstring sectionName) const = 0;
     virtual void emitIncludes(Util::SourceCodeBuilder* builder) const = 0;
     virtual void emitTableLookup(Util::SourceCodeBuilder* builder, cstring tblName, cstring key, cstring value) const = 0;
-    virtual void emitTableUpdate(Util::SourceCodeBuilder* builder, cstring tblName, cstring key, cstring value) const = 0;
-    virtual void emitUserTableUpdate(Util::SourceCodeBuilder* builder, cstring tblName, cstring key, cstring value) const = 0;
-    virtual void emitTableDecl(Util::SourceCodeBuilder* builder, cstring tblName, bool isHash, cstring keyType, cstring valueType, unsigned size) const = 0;
     virtual void emitMain(Util::SourceCodeBuilder* builder, cstring functionName, cstring argName, cstring packetSize) const = 0;
     virtual cstring dataOffset(cstring base) const = 0;
     virtual cstring dataEnd(cstring base) const = 0;
@@ -58,9 +55,6 @@ class zodiacfxTarget : public Target {
     void emitCodeSection(Util::SourceCodeBuilder*, cstring) const override {}
     void emitIncludes(Util::SourceCodeBuilder* builder) const override;
     void emitTableLookup(Util::SourceCodeBuilder* builder, cstring tblName, cstring key, cstring value) const override;
-    void emitTableUpdate(Util::SourceCodeBuilder* builder, cstring tblName, cstring key, cstring value) const override;
-    void emitUserTableUpdate(Util::SourceCodeBuilder* builder, cstring tblName, cstring key, cstring value) const override;
-    void emitTableDecl(Util::SourceCodeBuilder* builder, cstring tblName, bool isHash, cstring keyType, cstring valueType, unsigned size) const override;
     void emitMain(Util::SourceCodeBuilder* builder, cstring functionName, cstring argName, cstring packetSize) const override;
     cstring dataOffset(cstring base) const override { return base; }
     cstring dataEnd(cstring base) const override

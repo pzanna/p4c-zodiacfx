@@ -55,7 +55,6 @@ class ZODIACFXTable final : public ZODIACFXTableBase {
 
     ZODIACFXTable(const ZODIACFXProgram* program, const IR::TableBlock* table, CodeGenInspector* codeGen);
     void emitTypes(CodeBuilder* builder);
-    void emitInstance(CodeBuilder* builder);
     void emitActionArguments(CodeBuilder* builder, const IR::P4Action* action, cstring name);
     void emitKeyType(CodeBuilder* builder);
     void emitValueType(CodeBuilder* builder);

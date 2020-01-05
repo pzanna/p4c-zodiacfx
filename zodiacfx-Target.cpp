@@ -21,15 +21,8 @@ namespace ZODIACFX {
 
 
 void zodiacfxTarget::emitTableLookup(Util::SourceCodeBuilder* builder, cstring tblName, cstring key, cstring value) const {
+    //builder->appendFormat("%s = %s.lookup(&%s)", value.c_str(), tblName.c_str(), key.c_str());
     builder->appendFormat("%s = %s.lookup(&%s)", value.c_str(), tblName.c_str(), key.c_str());
-}
-
-void zodiacfxTarget::emitTableUpdate(Util::SourceCodeBuilder* builder, cstring tblName, cstring key, cstring value) const {
-    builder->appendFormat("%s.update(&%s, &%s);", tblName.c_str(), key.c_str(), value.c_str());
-}
-
-void zodiacfxTarget::emitUserTableUpdate(Util::SourceCodeBuilder* builder, cstring tblName, cstring key, cstring value) const {
-    builder->appendFormat("bpf_update_elem(%s, &%s, &%s, BPF_ANY);", tblName.c_str(), key.c_str(), value.c_str());
 }
 
 void zodiacfxTarget::emitIncludes(Util::SourceCodeBuilder* builder) const {
@@ -40,12 +33,6 @@ void zodiacfxTarget::emitIncludes(Util::SourceCodeBuilder* builder) const {
          "#include \"common.h\"\n"
          "#include \"switch.h\"\n"
          "\n");
-}
-
-void zodiacfxTarget::emitTableDecl(Util::SourceCodeBuilder* builder, cstring tblName, bool isHash, cstring keyType, cstring valueType, unsigned size) const {
-    cstring kind = isHash ? "hash" : "array";
-    builder->appendFormat("BPF_TABLE(\"%s\", %s, %s, %s, %d);", kind.c_str(), keyType.c_str(), valueType.c_str(), tblName.c_str(), size);
-    builder->newline();
 }
 
 void zodiacfxTarget::emitMain(Util::SourceCodeBuilder* builder, cstring functionName, cstring argName, cstring packetSize) const {

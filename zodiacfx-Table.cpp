@@ -200,54 +200,6 @@ void ZODIACFXTable::emitTypes(CodeBuilder* builder) {
     emitValueType(builder);
 }
 
-void ZODIACFXTable::emitInstance(CodeBuilder* builder) {
-    if (keyGenerator != nullptr) {
-        auto impl = table->container->properties->getProperty(
-            program->model.tableImplProperty.name);
-        if (impl == nullptr) {
-            ::error("Table %1% does not have an %2% property",
-                    table->container, program->model.tableImplProperty.name);
-            return;
-        }
-
-        // Some type checking...
-        if (!impl->value->is<IR::ExpressionValue>()) {
-            ::error("%1%: Expected property to be an `extern` block", impl);
-            return;
-        }
-
-        auto expr = impl->value->to<IR::ExpressionValue>()->expression;
-        if (!expr->is<IR::ConstructorCallExpression>()) {
-            ::error("%1%: Expected property to be an `extern` block", impl);
-            return;
-        }
-
-        auto block = table->getValue(expr);
-        if (block == nullptr || !block->is<IR::ExternBlock>()) {
-            ::error("%1%: Expected property to be an `extern` block", impl);
-            return;
-        }
-
-        bool isHash;
-        auto extBlock = block->to<IR::ExternBlock>();
-        if (extBlock->type->name.name == program->model.hash_table.name) {
-            isHash = true;
-        } else {
-            ::error("%1%: implementation must be one of %3%",
-                    impl, program->model.hash_table.name);
-            return;
-        }
-
-        cstring name = ZODIACFXObject::externalName(table->container);
-        builder->target->emitTableDecl(builder, name, isHash,
-                                       cstring("struct ") + keyTypeName,
-                                       cstring("struct ") + valueTypeName, 0);
-    }
-    builder->target->emitTableDecl(builder, defaultActionMapName, false,
-                                   program->arrayIndexType,
-                                   cstring("struct ") + valueTypeName, 1);
-}
-
 void ZODIACFXTable::emitKey(CodeBuilder* builder, cstring keyName) {
     if (keyGenerator == nullptr)
         return;
@@ -360,11 +312,6 @@ void ZODIACFXTable::emitInitializer(CodeBuilder* builder) {
     builder->endOfStatement(true);
 
     builder->emitIndent();
-    builder->append("int ok = ");
-    builder->target->emitUserTableUpdate(builder, fd, program->zeroKey, value);
-    builder->newline();
-
-    builder->emitIndent();
     builder->appendFormat("if (ok != 0) { "
                           "perror(\"Could not write in %s\"); exit(1); }",
                           defaultTable.c_str());
@@ -373,6 +320,7 @@ void ZODIACFXTable::emitInitializer(CodeBuilder* builder) {
 
     // Emit code for table initializer
     auto entries = t->getEntries();
+
     if (entries == nullptr)
         return;
 
@@ -430,11 +378,6 @@ void ZODIACFXTable::emitInitializer(CodeBuilder* builder) {
 
         builder->blockEnd(false);
         builder->endOfStatement(true);
-
-        builder->emitIndent();
-        builder->append("int ok = ");
-        builder->target->emitUserTableUpdate(builder, fd, key, value);
-        builder->newline();
 
         builder->emitIndent();
         builder->appendFormat("if (ok != 0) { "

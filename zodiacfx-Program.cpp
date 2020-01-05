@@ -114,6 +114,14 @@ void ZODIACFXProgram::emitH(CodeBuilder* builder, cstring) {
     builder->newline();
     emitTypes(builder);
     control->emitTableTypes(builder);
+    builder->newline();
+    builder->appendLine("static void init_tables() ");
+    builder->blockStart();
+    builder->emitIndent();
+    builder->appendFormat("u32 %s = 0;", zeroKey.c_str());
+    builder->newline();
+    control->emitTableInitializers(builder);
+    builder->blockEnd(true);
     builder->appendLine("#endif");
 }
 

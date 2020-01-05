@@ -280,8 +280,7 @@ void ControlBodyTranslator::processApply(const P4::ApplyMethod* method) {
     builder->endOfStatement(true);
 
     builder->emitIndent();
-    builder->target->emitTableLookup(builder, table->defaultActionMapName,
-                                     control->program->zeroKey, valueName);
+    builder->target->emitTableLookup(builder, table->defaultActionMapName, control->program->zeroKey, valueName);
     builder->endOfStatement(true);
     builder->blockEnd(false);
     builder->append(" else ");
@@ -299,8 +298,7 @@ void ControlBodyTranslator::processApply(const P4::ApplyMethod* method) {
     table->emitAction(builder, valueName);
     if (!actionVariableName.isNullOrEmpty()) {
         builder->emitIndent();
-        builder->appendFormat("%s = %s->action",
-                              actionVariableName.c_str(), valueName.c_str());
+        builder->appendFormat("%s = %s->action", actionVariableName.c_str(), valueName.c_str());
         builder->endOfStatement(true);
     }
     toDereference.clear();
@@ -324,8 +322,7 @@ bool ControlBodyTranslator::preorder(const IR::ReturnStatement*) {
 }
 
 bool ControlBodyTranslator::preorder(const IR::IfStatement* statement) {
-    bool isHit = P4::TableApplySolver::isHit(statement->condition, control->program->refMap,
-                                             control->program->typeMap);
+    bool isHit = P4::TableApplySolver::isHit(statement->condition, control->program->refMap, control->program->typeMap);
     if (isHit) {
         // visit first the table, and then the conditional
         auto member = statement->condition->to<IR::Member>();
@@ -427,6 +424,7 @@ void ZODIACFXControl::scanConstants() {
 }
 
 bool ZODIACFXControl::build() {
+    hitVariable = program->refMap->newName("hit");
     auto pl = controlBlock->container->type->applyParams;
     if (pl->size() != 3) {
         ::error("Expected control block to have exactly 3 parameters");
@@ -466,6 +464,13 @@ void ZODIACFXControl::emitDeclaration(CodeBuilder* builder, const IR::Declaratio
 }
 
 void ZODIACFXControl::emit(CodeBuilder* builder) {
+    auto hitType = ZODIACFXTypeFactory::instance->create(IR::Type_Boolean::get());
+    builder->emitIndent();
+    hitType->declare(builder, hitVariable, false);
+    builder->endOfStatement(true);
+    for (auto a : controlBlock->container->controlLocals)
+        emitDeclaration(builder, a);
+
     builder->emitIndent();
     codeGen->setBuilder(builder);
     controlBlock->container->body->apply(*codeGen);
@@ -475,11 +480,6 @@ void ZODIACFXControl::emit(CodeBuilder* builder) {
 void ZODIACFXControl::emitTableTypes(CodeBuilder* builder) {
     for (auto it : tables)
         it.second->emitTypes(builder);
-}
-
-void ZODIACFXControl::emitTableInstances(CodeBuilder* builder) {
-    for (auto it : tables)
-        it.second->emitInstance(builder);
 }
 
 void ZODIACFXControl::emitTableInitializers(CodeBuilder* builder) {

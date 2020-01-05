@@ -42,9 +42,9 @@ struct Headers_t {
 *********************** P A R S E R  ***********************************
 *************************************************************************/
 
-parser prs(packet_in p, out Headers_t headers) {
+parser MyParser(packet_in packet, out Headers_t headers) {
     state start {
-        p.extract(headers.ethernet);
+        packet.extract(headers.ethernet);
         transition select(headers.ethernet.etherType) {
             16w0x800 : ip;
             default : accept;
@@ -52,25 +52,65 @@ parser prs(packet_in p, out Headers_t headers) {
     }
 
     state ip {
-        p.extract(headers.ipv4);
+        packet.extract(headers.ipv4);
         transition accept;
     }
 }
 
+/*************************************************************************
+**************************  S W I T C H  *******************************
+*************************************************************************/
+
 control swtch(inout Headers_t headers, in zodiacfx_input fxin, out zodiacfx_output fxout){
-    apply {
-        if (fxin.input_port == 1) {
-        fxout.output_port = 2;
-        } else {
-        fxout.output_port = 1;
-        }
+    
+    action drop()
+    {
+        fxout.output_port = 0;
     }
+
+    action eth_forward(macAddr_t dstAddr, egressSpec_t port)
+    {
+        headers.ethernet.srcAddr = headers.ethernet.dstAddr;
+        headers.ethernet.dstAddr = dstAddr;
+    }
+
+    table eth_exact
+    {
+        key = { headers.ethernet.dstAddr : exact;
+                headers.ethernet.etherType: exact;}
+
+        actions = {
+            eth_forward;
+            drop;
+        }
+
+        default_action = drop();
+
+        const entries = {
+                (112233445566, 0x08 ) : drop(); 
+            }
+    }
+
+    apply
+    {
+        eth_exact.apply();
+    }
+
 }
-control deprs(in Headers_t headers, packet_out p, in zodiacfx_output fxout){
+
+/*************************************************************************
+***********************  D E P A R S E R  *******************************
+*************************************************************************/
+
+control MyDeparser(in Headers_t headers, packet_out packet, in zodiacfx_output fxout) {
     apply {
-        p.emit(headers.ethernet);
-        p.emit(headers.ipv4);
+        packet.emit(headers.ethernet);
+        packet.emit(headers.ipv4);
     }
 }
 
-ZodiacfxSwitch(prs(), swtch(), deprs())main;
+ZodiacfxSwitch(
+MyParser(),
+swtch(),
+MyDeparser()
+)main;
