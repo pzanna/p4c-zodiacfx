@@ -281,12 +281,10 @@ void ZODIACFXTable::emitInitializer(CodeBuilder* builder) {
     builder->emitIndent();
     builder->blockStart();
     builder->emitIndent();
-    builder->appendFormat("int %s = BPF_OBJ_GET(MAP_PATH \"/%s\")",
-                          fd.c_str(), defaultTable.c_str());
+    builder->appendFormat("int %s = BPF_OBJ_GET(MAP_PATH \"/%s\")", fd.c_str(), defaultTable.c_str());
     builder->endOfStatement(true);
     builder->emitIndent();
-    builder->appendFormat("if (%s < 0) { fprintf(stderr, \"map %s not loaded\\n\"); exit(1); }",
-                          fd.c_str(), defaultTable.c_str());
+    builder->appendFormat("if (%s < 0) { fprintf(stderr, \"map %s not loaded\\n\"); exit(1); }", fd.c_str(), defaultTable.c_str());
     builder->newline();
 
     builder->emitIndent();
@@ -312,8 +310,7 @@ void ZODIACFXTable::emitInitializer(CodeBuilder* builder) {
     builder->endOfStatement(true);
 
     builder->emitIndent();
-    builder->appendFormat("if (ok != 0) { "
-                          "perror(\"Could not write in %s\"); exit(1); }",
+    builder->appendFormat("if (ok != 0) { perror(\"Could not write in %s\"); exit(1); }",
                           defaultTable.c_str());
     builder->newline();
     builder->blockEnd(true);
@@ -327,12 +324,10 @@ void ZODIACFXTable::emitInitializer(CodeBuilder* builder) {
     builder->emitIndent();
     builder->blockStart();
     builder->emitIndent();
-    builder->appendFormat("int %s = BPF_OBJ_GET(MAP_PATH \"/%s\")",
-                          fd.c_str(), dataMapName.c_str());
+    builder->appendFormat("int %s = BPF_OBJ_GET(MAP_PATH \"/%s\")", fd.c_str(), dataMapName.c_str());
     builder->endOfStatement(true);
     builder->emitIndent();
-    builder->appendFormat("if (%s < 0) { fprintf(stderr, \"map %s not loaded\\n\"); exit(1); }",
-                          fd.c_str(), dataMapName.c_str());
+    builder->appendFormat("if (%s < 0) { fprintf(stderr, \"map %s not loaded\\n\"); exit(1); }", fd.c_str(), dataMapName.c_str());
     builder->newline();
 
     for (auto e : entries->entries) {
@@ -346,8 +341,7 @@ void ZODIACFXTable::emitInitializer(CodeBuilder* builder) {
         builder->append("}");
         builder->endOfStatement(true);
 
-        BUG_CHECK(entryAction->is<IR::MethodCallExpression>(),
-                  "%1%: expected an action call", defaultAction);
+        BUG_CHECK(entryAction->is<IR::MethodCallExpression>(), "%1%: expected an action call", defaultAction);
         auto mce = entryAction->to<IR::MethodCallExpression>();
         auto mi = P4::MethodInstance::resolve(mce, program->refMap, program->typeMap);
 
@@ -357,8 +351,7 @@ void ZODIACFXTable::emitInitializer(CodeBuilder* builder) {
         cstring name = ZODIACFXObject::externalName(action);
 
         builder->emitIndent();
-        builder->appendFormat("struct %s %s = ",
-                              valueTypeName.c_str(), value.c_str());
+        builder->appendFormat("struct %s %s = ", valueTypeName.c_str(), value.c_str());
         builder->blockStart();
         builder->emitIndent();
         builder->appendFormat(".action = %s,", name.c_str());
@@ -380,9 +373,7 @@ void ZODIACFXTable::emitInitializer(CodeBuilder* builder) {
         builder->endOfStatement(true);
 
         builder->emitIndent();
-        builder->appendFormat("if (ok != 0) { "
-                              "perror(\"Could not write in %s\"); exit(1); }",
-                              t->name.name.c_str());
+        builder->appendFormat("if (ok != 0) { perror(\"Could not write in %s\"); exit(1); }", t->name.name.c_str());
         builder->newline();
         builder->blockEnd(true);
     }
